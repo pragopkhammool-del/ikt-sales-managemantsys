@@ -47,6 +47,7 @@ export default function SalesOrderView({
   const [jobNo, setJobNo] = useState('');
   const [poNo, setPoNo] = useState('');
   const [soNo, setSoNo] = useState('');
+  const [salesPerson, setSalesPerson] = useState('');
 
   const canModify = currentRole !== 'Management';
   const canDelete = currentRole === 'Admin' || currentRole === 'System Administrator';
@@ -63,6 +64,7 @@ export default function SalesOrderView({
     setStatus('Pending');
     setJobNo('');
     setPoNo('');
+    setSalesPerson('');
     
     // Auto-generate SO number for new orders
     try {
@@ -87,6 +89,7 @@ export default function SalesOrderView({
     setJobNo(so.job_no || '');
     setPoNo(so.po_no || '');
     setSoNo(so.so_no);
+    setSalesPerson(so.sales_person || '');
     setIsFormOpen(true);
   };
 
@@ -107,7 +110,8 @@ export default function SalesOrderView({
       order_date: orderDate,
       target_delivery_date: targetDeliveryDate,
       job_no: jobNo,
-      po_no: poNo
+      po_no: poNo,
+      sales_person: salesPerson
     };
 
     try {
@@ -182,6 +186,7 @@ export default function SalesOrderView({
       target_delivery_date: so.target_delivery_date,
       job_no: so.job_no || '',
       po_no: so.po_no || '',
+      sales_person: so.sales_person || '',
       items: so.items ? so.items.map(it => ({
         item_no: it.item_no,
         description: it.description,
@@ -361,6 +366,11 @@ export default function SalesOrderView({
                         )}
                       </div>
                       <span className="text-xs text-slate-500 font-semibold block">ลูกค้า: {so.customer_name}</span>
+                      {so.sales_person && (
+                        <span className="text-[11px] text-slate-400 font-medium block mt-0.5">
+                          ผู้ดูแล: <span className="text-slate-600 font-semibold">{so.sales_person}</span>
+                        </span>
+                      )}
 
                       {so.items && so.items.length > 0 && (
                         <div className="mt-2.5 pt-2 border-t border-dashed border-slate-200">
@@ -538,6 +548,20 @@ export default function SalesOrderView({
                 />
               </div>
 
+              {/* Sales Representative Input */}
+              <div>
+                <label className="block text-xs font-bold text-slate-500 mb-1.5">
+                  ผู้ดูแลยอดสั่งซื้อ / Sales Representative
+                </label>
+                <input
+                  type="text"
+                  placeholder="เช่น Thanaphol Khamdee"
+                  value={salesPerson}
+                  onChange={(e) => setSalesPerson(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+                />
+              </div>
+
               {/* Amount and Status and Dates */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -688,6 +712,9 @@ export default function SalesOrderView({
                   <div className="text-xs text-slate-700 font-bold">{viewingSO.project_name}</div>
                   <div className="text-[11.5px] leading-relaxed text-slate-500 mt-2">
                     กำหนดขอบเขตจัดส่งรายงาน: <strong>{viewingSO.target_delivery_date}</strong><br />
+                    {viewingSO.sales_person && (
+                      <>ผู้ดูแล: <strong>{viewingSO.sales_person}</strong><br /></>
+                    )}
                     ระเบียบประกันภัย: กำหนดให้พนักงานที่จัดส่งไปต้องสวมหมวกนิรภัย (PPE Standard) ตลอดความร่วมมือในพื้นที่โรงงานควบคุม
                   </div>
                 </div>

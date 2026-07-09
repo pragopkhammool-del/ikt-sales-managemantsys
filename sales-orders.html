@@ -369,11 +369,15 @@
                 </div>
               </div>
               <div class="row g-3 mt-1">
-                <div class="col-12 col-md-6">
+                <div class="col-12 col-md-4">
                   <label class="form-label small fw-bold">Delivery Plan Date</label>
                   <input type="date" class="form-control" id="edit-delivery-plan">
                 </div>
-                <div class="col-12 col-md-6">
+                <div class="col-12 col-md-4">
+                  <label class="form-label small fw-bold">Sales Representative</label>
+                  <input type="text" class="form-control" id="edit-sales-rep" placeholder="e.g. Thanaphol Khamdee">
+                </div>
+                <div class="col-12 col-md-4">
                   <label class="form-label small fw-bold">Version <span class="text-danger">*</span></label>
                   <input type="text" class="form-control font-monospace" id="edit-version" placeholder="v1.0" required>
                   <div id="edit-version-flow" class="small mt-1 text-muted" style="display:none;"></div>
@@ -966,6 +970,7 @@
         document.getElementById('edit-job-no').value = q.job_no || '';
         document.getElementById('edit-po-no').value = q.po_no || '';
         document.getElementById('edit-delivery-plan').value = q.target_delivery_date || q.delivery_plan || '';
+        document.getElementById('edit-sales-rep').value = q.sales_person || q.sales_representative || '';
         
         const verVal = q.version || 'v1.0';
         document.getElementById('edit-version').value = verVal;
@@ -983,6 +988,7 @@
         document.getElementById('edit-job-no').value = q.job_no || '';
         document.getElementById('edit-po-no').value = q.po_no || '';
         document.getElementById('edit-delivery-plan').value = q.target_delivery_date || q.delivery_plan || '';
+        document.getElementById('edit-sales-rep').value = q.sales_person || q.sales_representative || '';
         
         const currentVer = q.version || 'v1.0';
         const nextVer = incrementVersion(currentVer);
@@ -1119,6 +1125,7 @@
       const jobNo = document.getElementById('edit-job-no').value;
       const poNo = document.getElementById('edit-po-no').value;
       const deliveryPlan = document.getElementById('edit-delivery-plan').value || '';
+      const salesRep = document.getElementById('edit-sales-rep').value || '';
       const versionVal = document.getElementById('edit-version').value || 'v1.0';
 
       const items = [];
@@ -1150,6 +1157,7 @@
           po_no: poNo,
           target_delivery_date: deliveryPlan,
           delivery_plan: deliveryPlan,
+          sales_person: salesRep,
           version: versionVal
         };
 
@@ -1176,6 +1184,7 @@
           delivery_plan: deliveryPlan,
           items: items,
           total_amount: grand_total,
+          sales_person: salesRep,
           version: versionVal
         };
 
