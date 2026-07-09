@@ -1,7 +1,10 @@
 // Supabase REST Client and Database Service
-const SUPABASE_URL = 'https://vrmjdbwdilqitdttzrcq.supabase.co';
+const savedSupabaseUrl = localStorage.getItem('crm_supabase_url');
+const savedSupabaseKey = localStorage.getItem('crm_supabase_anon_key');
+
+const SUPABASE_URL = (savedSupabaseUrl ? savedSupabaseUrl.replace('/rest/v1', '').trim() : 'https://vrmjdbwdilqitdttzrcq.supabase.co').trim();
 const SUPABASE_REST_URL = SUPABASE_URL + '/rest/v1';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZybWpkYndkaWxxaXRkdHR6cmNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NzkzOTUsImV4cCI6MjA5NzE1NTM5NX0.1XPYA4LAyQOBL1WCKC-oIbsSLYcw3s5W9znimDXqmL4';
+const SUPABASE_KEY = (savedSupabaseKey ? savedSupabaseKey.trim() : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZybWpkYndkaWxxaXRkdHR6cmNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NzkzOTUsImV4cCI6MjA5NzE1NTM5NX0.1XPYA4LAyQOBL1WCKC-oIbsSLYcw3s5W9znimDXqmL4').trim();
 
 // Dynamically load Supabase SDK for Realtime support
 (function loadSupabaseSDK() {
