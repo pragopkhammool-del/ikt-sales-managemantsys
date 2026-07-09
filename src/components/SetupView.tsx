@@ -158,6 +158,7 @@ CREATE TABLE IF NOT EXISTS public.sales_orders (
     target_delivery_date DATE,
     job_no VARCHAR(100),
     po_no VARCHAR(100),
+    sales_person VARCHAR(100),
     items JSONB DEFAULT '[]'::jsonb,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -186,6 +187,7 @@ ALTER TABLE public.opportunities ADD COLUMN IF NOT EXISTS internal_notes TEXT;
 
 ALTER TABLE public.sales_orders ADD COLUMN IF NOT EXISTS job_no VARCHAR(100);
 ALTER TABLE public.sales_orders ADD COLUMN IF NOT EXISTS po_no VARCHAR(100);
+ALTER TABLE public.sales_orders ADD COLUMN IF NOT EXISTS sales_person VARCHAR(100);
 ALTER TABLE public.sales_orders ADD COLUMN IF NOT EXISTS items JSONB DEFAULT '[]'::jsonb;`;
 
   // Check cloud connection on load

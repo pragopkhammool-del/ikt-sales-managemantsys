@@ -184,6 +184,7 @@ CREATE TABLE IF NOT EXISTS public.sales_orders (
     target_delivery_date DATE,
     job_no VARCHAR(100),
     po_no VARCHAR(100),
+    sales_person VARCHAR(100),
     items JSONB DEFAULT '[]'::jsonb,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_by UUID,

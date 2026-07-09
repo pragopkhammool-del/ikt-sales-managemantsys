@@ -1608,6 +1608,7 @@ export default function App() {
                                                 total_amount: soPayload.total_amount,
                                                 status: 'Pending' as const,
                                                 order_date: soPayload.order_date,
+                                                 sales_person: soPayload.sales_person,
                                                 items: soPayload.items,
                                                 created_at: new Date().toISOString()
                                               };

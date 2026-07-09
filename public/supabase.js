@@ -724,7 +724,7 @@ const TABLE_COLUMNS = {
   ],
   sales_orders: [
     'id', 'so_no', 'quotation_id', 'customer_id', 'project_name', 'total_amount',
-    'status', 'order_date', 'target_delivery_date', 'job_no', 'po_no', 'items',
+    'status', 'order_date', 'target_delivery_date', 'job_no', 'po_no', 'sales_person', 'items',
     'created_at', 'created_by', 'updated_by'
   ],
   invoices: [

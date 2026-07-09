@@ -182,6 +182,7 @@ export interface SalesOrder {
   customer_name?: string;
   job_no?: string;
   po_no?: string;
+  sales_person?: string;
   items?: {
     item_no: number;
     description: string;
