@@ -519,8 +519,9 @@ export default function App() {
     const subtotal = invForm.grandTotal / 1.07;
     const tax = invForm.grandTotal - subtotal;
 
+    const currentYearShort = (invForm.date || new Date().toISOString().slice(0, 10)).split('-')[0].slice(-2);
     const nextId = invoices.length + 1;
-    const invNo = `INV-${String(nextId).padStart(6, '0')}`;
+    const invNo = `INV-${String(nextId).padStart(4, '0')}-${currentYearShort}`;
 
     const newInv: InvoiceSim = {
       id: nextId,

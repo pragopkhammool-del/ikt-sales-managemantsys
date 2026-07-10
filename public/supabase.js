@@ -1694,18 +1694,28 @@ const SupabaseDB = {
     const iDate = invData.invoice_date || new Date().toISOString().slice(0, 10);
     const yr = iDate.split('-')[0].slice(-2); // e.g. "26"
 
-    const thisYearInvs = invoices.filter(inv => inv.invoice_no && inv.invoice_no.startsWith(`INV-${yr}`));
+    const thisYearInvs = invoices.filter(inv => {
+      if (!inv.invoice_no) return false;
+      const parts = inv.invoice_no.split('-');
+      return (parts.length === 3 && parts[0] === 'INV' && parts[2] === yr) || inv.invoice_no.startsWith(`INV-${yr}`);
+    });
 
     let seq = 1;
     if (thisYearInvs.length > 0) {
       const seqs = thisYearInvs.map(inv => {
-        const seqPart = inv.invoice_no.replace(`INV-${yr}`, '');
-        const num = parseInt(seqPart, 10);
-        return isNaN(num) ? 0 : num;
+        const parts = inv.invoice_no.split('-');
+        if (parts.length === 3) {
+          const num = parseInt(parts[1], 10);
+          return isNaN(num) ? 0 : num;
+        } else {
+          const seqPart = inv.invoice_no.replace(`INV-${yr}`, '');
+          const num = parseInt(seqPart, 10);
+          return isNaN(num) ? 0 : num;
+        }
       });
       seq = Math.max(...seqs, 0) + 1;
     }
-    const nextCode = `INV-${yr}${String(seq).padStart(4, '0')}`;
+    const nextCode = `INV-${String(seq).padStart(4, '0')}-${yr}`;
     const newId = crypto.randomUUID();
 
     const currentUser = this.getCurrentUser();

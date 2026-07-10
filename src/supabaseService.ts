@@ -2829,18 +2829,31 @@ export const CRMService = {
 
   async insertInvoice(payload: Omit<Invoice, 'id' | 'invoice_no' | 'created_at'>): Promise<Invoice> {
     const list = LocalDB.getInvoices();
-    const currentYearShort = '26';
-    const matches = list.filter(q => q.invoice_no.startsWith(`INV-${currentYearShort}`));
+    const issueDateStr = payload.issue_date || new Date().toISOString().slice(0, 10);
+    const currentYearShort = issueDateStr.split('-')[0].slice(-2);
+    
+    const matches = list.filter(q => {
+      if (!q.invoice_no) return false;
+      const parts = q.invoice_no.split('-');
+      return (parts.length === 3 && parts[0] === 'INV' && parts[2] === currentYearShort) || q.invoice_no.startsWith(`INV-${currentYearShort}`);
+    });
+
     let nextSeq = 1;
     if (matches.length > 0) {
-      const maxSeq = matches.reduce((max, item) => {
-        const seqPart = item.invoice_no.replace(`INV-${currentYearShort}`, '');
-        const num = parseInt(seqPart, 10);
-        return num > max ? num : max;
-      }, 0);
-      nextSeq = maxSeq + 1;
+      const seqs = matches.map(item => {
+        const parts = item.invoice_no.split('-');
+        if (parts.length === 3) {
+          const num = parseInt(parts[1], 10);
+          return isNaN(num) ? 0 : num;
+        } else {
+          const seqPart = item.invoice_no.replace(`INV-${currentYearShort}`, '');
+          const num = parseInt(seqPart, 10);
+          return isNaN(num) ? 0 : num;
+        }
+      });
+      nextSeq = Math.max(...seqs, 0) + 1;
     }
-    const nextCode = `INV-${currentYearShort}${String(nextSeq).padStart(4, '0')}`;
+    const nextCode = `INV-${String(nextSeq).padStart(4, '0')}-${currentYearShort}`;
     const newId = crypto.randomUUID();
 
     const prepared: Invoice = {
@@ -2971,18 +2984,31 @@ export const CRMService = {
 
   async insertReceipt(payload: Omit<Receipt, 'id' | 'receipt_no' | 'created_at'>): Promise<Receipt> {
     const list = LocalDB.getReceipts();
-    const currentYearShort = '26';
-    const matches = list.filter(q => q.receipt_no.startsWith(`RE-${currentYearShort}`));
+    const paymentDateStr = payload.payment_date || new Date().toISOString().slice(0, 10);
+    const currentYearShort = paymentDateStr.split('-')[0].slice(-2);
+
+    const matches = list.filter(q => {
+      if (!q.receipt_no) return false;
+      const parts = q.receipt_no.split('-');
+      return (parts.length === 3 && parts[0] === 'RE' && parts[2] === currentYearShort) || q.receipt_no.startsWith(`RE-${currentYearShort}`);
+    });
+
     let nextSeq = 1;
     if (matches.length > 0) {
-      const maxSeq = matches.reduce((max, item) => {
-        const seqPart = item.receipt_no.replace(`RE-${currentYearShort}`, '');
-        const num = parseInt(seqPart, 10);
-        return num > max ? num : max;
-      }, 0);
-      nextSeq = maxSeq + 1;
+      const seqs = matches.map(item => {
+        const parts = item.receipt_no.split('-');
+        if (parts.length === 3) {
+          const num = parseInt(parts[1], 10);
+          return isNaN(num) ? 0 : num;
+        } else {
+          const seqPart = item.receipt_no.replace(`RE-${currentYearShort}`, '');
+          const num = parseInt(seqPart, 10);
+          return isNaN(num) ? 0 : num;
+        }
+      });
+      nextSeq = Math.max(...seqs, 0) + 1;
     }
-    const nextCode = `RE-${currentYearShort}${String(nextSeq).padStart(4, '0')}`;
+    const nextCode = `RE-${String(nextSeq).padStart(4, '0')}-${currentYearShort}`;
     const newId = crypto.randomUUID();
 
     const prepared: Receipt = {
