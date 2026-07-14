@@ -1231,16 +1231,9 @@
               return;
             }
 
-            const formatYYSuffixStr = () => {
-              const currentYearShort = new Date().getFullYear().toString().slice(-2);
-              return `INV-${Math.floor(Math.random() * 90000 + 10000)}-${currentYearShort}`;
-            };
-
-            const invoiceNo = formatYYSuffixStr();
             const subTotal = so.total_amount / 1.07;
             
             const payload = {
-              invoice_no: invoiceNo,
               quotation_no: so.so_no,
               customer_id: so.customer_id,
               project_name: so.project_name,
@@ -1258,7 +1251,8 @@
               remarks: `Generated from Sales Order ${so.so_no} (Job: ${so.job_no || '-'})`
             };
 
-            await SupabaseDB.addInvoice(payload);
+            const createdInvoice = await SupabaseDB.addInvoice(payload);
+            const invoiceNo = createdInvoice.invoice_no;
             
             await SupabaseDB.updateSalesOrder(so.id, { status: 'Invoiced' });
 
