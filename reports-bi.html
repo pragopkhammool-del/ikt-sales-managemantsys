@@ -173,7 +173,7 @@
           <div class="col-12 col-lg-8">
             <div class="card shadow-sm border-1 border-light-subtle">
               <div class="card-header bg-white">
-                <h6 class="m-0 fw-bold"><i class="fa fa-chart-bar text-primary"></i> Quotation Pipeline vs. Official Invoiced Billing</h6>
+                <h6 class="m-0 fw-bold"><i class="fa fa-chart-bar text-primary"></i> Quotation Pipeline, Sales Orders vs. Official Invoiced Billing</h6>
               </div>
               <div class="card-body" style="height: 350px; position: relative;">
                 <canvas id="quoteVsBillChart"></canvas>
@@ -360,14 +360,14 @@
       const ratio = billSum > 0 ? (paidSum / billSum) * 100 : 0;
       document.getElementById('bi-collection-ratio').innerText = `${ratio.toFixed(2)}%`;
 
-      drawQuoteVsBillChart(quoteSum, billSum, paidSum);
+      drawQuoteVsBillChart(quoteSum, soSum, billSum, paidSum);
       drawWinLossChart(opps);
 
       drawTopCustomersTable(filteredInvoices, customers);
       drawTeamKPIsTable(opps, filteredQuotes);
     }
 
-    function drawQuoteVsBillChart(quote, bill, paid) {
+    function drawQuoteVsBillChart(quote, salesOrder, bill, paid) {
       const ctx = document.getElementById('quoteVsBillChart').getContext('2d');
       if (quotesChartObj) {
         quotesChartObj.destroy();
@@ -376,19 +376,21 @@
       quotesChartObj = new Chart(ctx, {
         type: 'bar',
         data: {
-          labels: ['Total Pipeline Value', 'Total Invoiced', 'Cash Receipts'],
+          labels: ['Total Pipeline Value', 'Total Sales Orders', 'Total Invoiced', 'Cash Receipts'],
           datasets: [{
             label: 'Total Value (฿)',
-            data: [quote, bill, paid],
+            data: [quote, salesOrder, bill, paid],
             backgroundColor: [
-              'rgba(13, 110, 253, 0.75)',
-              'rgba(25, 135, 84, 0.75)',
-              'rgba(111, 66, 193, 0.75)'
+              'rgba(99, 102, 241, 0.75)',
+              'rgba(16, 185, 129, 0.75)',
+              'rgba(59, 130, 246, 0.75)',
+              'rgba(168, 85, 247, 0.75)'
             ],
             borderColor: [
-              '#0d6efd',
-              '#198754',
-              '#6f42c1'
+              '#6366f1',
+              '#10b981',
+              '#3b82f6',
+              '#a855f7'
             ],
             borderWidth: 1.5
           }]
