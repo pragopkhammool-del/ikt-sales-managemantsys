@@ -214,7 +214,7 @@ export default function QuotationView({
         q.quotation_no.toLowerCase().includes(searchTerm.toLowerCase()) ||
         q.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (q.customer_name && q.customer_name.toLowerCase().includes(searchTerm.toLowerCase()));
-      const matchStatus = selectedStatus === 'All' || q.status === selectedStatus;
+      const matchStatus = selectedStatus === 'All' || q.status === selectedStatus || (selectedStatus === 'Approved' && q.status === 'Invoiced');
       return matchSearch && matchStatus;
     });
   }, [quotations, searchTerm, selectedStatus]);
@@ -354,13 +354,13 @@ export default function QuotationView({
                     </td>
                     <td className="border border-slate-200 px-3 py-1.5 text-center">
                       <span className={`inline-block px-2.5 py-0.5 rounded text-[10px] font-bold leading-none ${
-                        q.status === 'Approved' ? 'bg-emerald-50 text-emerald-700 border border-emerald-150' :
+                        (q.status === 'Approved' || q.status === 'Invoiced') ? 'bg-emerald-50 text-emerald-700 border border-emerald-150' :
                         q.status === 'Sent' ? 'bg-blue-50 text-blue-700 border border-blue-150' :
                         q.status === 'Rejected' ? 'bg-rose-50 text-rose-700 border border-rose-150' :
                         q.status === 'Expired' ? 'bg-amber-50 text-amber-700 border border-amber-150' :
                         'bg-slate-50 text-slate-600 border border-slate-200'
                       }`}>
-                        {q.status}
+                        {q.status === 'Invoiced' ? 'Approved' : q.status}
                       </span>
                     </td>
                     <td className="border border-slate-200 px-3 py-1.5 text-right" onClick={(e) => e.stopPropagation()}>

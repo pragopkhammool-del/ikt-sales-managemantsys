@@ -438,9 +438,8 @@ async function viewCustomerDetail(id) {
         let statusBadge = '';
         if (quote.status === 'Draft') statusBadge = '<span class="badge-status badge-status-draft">Draft</span>';
         else if (quote.status === 'Sent') statusBadge = '<span class="badge-status badge-status-submitted"><i class="fa fa-paper-plane me-1"></i>Sent</span>';
-        else if (quote.status === 'Approved') statusBadge = '<span class="badge-status badge-status-approved"><i class="fa fa-check me-1"></i>Approved</span>';
+        else if (quote.status === 'Approved' || quote.status === 'Invoiced') statusBadge = '<span class="badge-status badge-status-approved"><i class="fa fa-check me-1"></i>Approved</span>';
         else if (quote.status === 'Rejected') statusBadge = '<span class="badge-status badge-status-rejected">Rejected</span>';
-        else if (quote.status === 'Invoiced') statusBadge = '<span class="badge-status badge-status-ready"><i class="fa fa-file-invoice me-1"></i>Invoiced</span>';
         else statusBadge = `<span class="badge-status badge-status-draft">${quote.status || 'Draft'}</span>`;
 
         return `
@@ -451,7 +450,7 @@ async function viewCustomerDetail(id) {
               <div class="text-muted font-monospace mt-0.5" style="font-size: 11px; line-height: 1.3;">
                 <span class="d-block"><i class="fas fa-user-tie text-secondary" style="font-size: 9px;"></i> Handler: ${(window.SupabaseDB && window.SupabaseDB.getUsernameOrDisplayName) ? window.SupabaseDB.getUsernameOrDisplayName(quote.sales_person) : (quote.sales_person || '-')}</span>
                 <span class="d-block"><i class="fa fa-plus-circle text-secondary" style="font-size: 9px;"></i> Created by: ${quote.created_by ? window.SupabaseDB.getUsernameOrDisplayName(quote.created_by) : '@apiyut'}</span>
-                ${quote.status === 'Approved' ? `<span class="d-block text-success"><i class="fa fa-check-circle" style="font-size: 9px;"></i> Approved by: @apiyut</span>` : ''}
+                ${(quote.status === 'Approved' || quote.status === 'Invoiced') ? `<span class="d-block text-success"><i class="fa fa-check-circle" style="font-size: 9px;"></i> Approved by: @apiyut</span>` : ''}
               </div>
             </td>
             <td class="small text-muted font-monospace">${quote.quotation_date || '-'}</td>

@@ -667,14 +667,15 @@ function StatusBadge({ status }: { status: string }) {
     Sent: "bg-blue-100 text-blue-700",
     Approved: "bg-emerald-100 text-emerald-700",
     Rejected: "bg-rose-100 text-rose-700",
-    Invoiced: "bg-indigo-100 text-indigo-700",
+    Invoiced: "bg-emerald-100 text-emerald-700",
     Cancelled: "bg-orange-100 text-orange-700",
   };
+  const displayStatus = status === "Invoiced" ? "Approved" : status;
   return (
     <span
       className={`px-2.5 py-1 text-xs font-bold rounded-md ${styles[status] || styles["Draft"]}`}
     >
-      {status}
+      {displayStatus}
     </span>
   );
 }
@@ -1230,7 +1231,7 @@ function QuoteForm({ id, onClose, quotations, customers, onToast }: any) {
                 Approved {!isApiyut ? " (เฉพาะ @apiyut Admin เท่านั้น)" : ""}
               </option>
               <option value="Rejected">Rejected</option>
-              <option value="Invoiced">Invoiced</option>
+              <option value="Invoiced">Approved (Invoiced)</option>
             </select>
           </div>
           <div>

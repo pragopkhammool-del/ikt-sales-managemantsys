@@ -1452,13 +1452,13 @@ export default function App() {
                                 </td>
                                 <td className="text-center">
                                   <span className={`inline-block py-1 px-2.5 rounded-full text-[9px] font-bold ${
-                                    q.status === 'Approved' ? 'bg-emerald-950/50 text-emerald-400 border border-emerald-900' :
+                                    (q.status === 'Approved' || q.status === 'Invoiced') ? 'bg-emerald-950/50 text-emerald-400 border border-emerald-900' :
                                     q.status === 'Sent' ? 'bg-indigo-950/50 text-indigo-400 border border-indigo-900' :
                                     q.status === 'Draft' ? 'bg-amber-950/50 text-amber-400 border border-amber-900' :
                                     q.status === 'Rejected' ? 'bg-rose-950/50 text-rose-400 border border-rose-900' :
                                     'bg-slate-950/50 text-slate-400 border border-slate-900'
                                   }`}>
-                                    {q.status === 'Approved' ? '✓ Approved' : 
+                                    {(q.status === 'Approved' || q.status === 'Invoiced') ? '✓ Approved' : 
                                      q.status === 'Sent' ? '✉ Sent' : 
                                      q.status === 'Draft' ? '✎ Draft' : 
                                      q.status === 'Rejected' ? '✕ Rejected' : q.status}
