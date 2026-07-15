@@ -19,23 +19,55 @@
 
   <style>
     @media print {
-      body * {
-        visibility: hidden;
+      body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
       }
-      #print-area, #print-area * {
-        visibility: visible;
+      .no-print, .modal-header, .modal-footer, .app-sidebar, .app-header {
+        display: none !important;
+      }
+      #soPrintModal {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        border: none !important;
+        background: #fff !important;
+      }
+      #soPrintModal .modal-dialog {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      #soPrintModal .modal-content {
+        border: none !important;
+        box-shadow: none !important;
+        background: #fff !important;
+      }
+      #soPrintModal .modal-body {
+        max-height: none !important;
+        overflow: visible !important;
+        padding: 0 !important;
+        background: #fff !important;
       }
       #print-area {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        padding: 20px;
-        background: #fff !important;
-        color: #000 !important;
+        width: 210mm !important;
+        min-height: 297mm !important;
+        padding: 10mm !important;
+        box-sizing: border-box !important;
+        border: none !important;
+        box-shadow: none !important;
+        background-color: #ffffff !important;
+        position: relative !important;
+        visibility: visible !important;
       }
-      .no-print {
-        display: none !important;
+      #print-area * {
+        visibility: visible !important;
       }
     }
     
@@ -274,17 +306,33 @@
         </div>
         <div class="modal-body bg-light h-100 overflow-y-auto" style="max-height: 80vh;">
           <div id="print-area" class="official-document">
-            <div class="row">
-              <div class="col-8">
-                <h4 class="fw-bold m-0 text-primary">IKM Testing Thailand</h4>
-                <p class="small text-muted mb-4">Head Office: Map Ta Phut Industrial Estate, Rayong, Thailand</p>
-                <div class="h5 fw-bold text-dark text-uppercase" id="print-so-title">SALES ORDER DIRECTIVE / WORK ORDER</div>
-              </div>
-              <div class="col-4 text-end">
-                <div class="badge bg-secondary mb-1">SO MASTER</div>
-                <div class="font-monospace text-dark d-block fw-bold" id="print-so-no">SO-XXXXX</div>
-                <div class="small text-muted" id="print-so-date">Date: --/--/----</div>
-              </div>
+            <table class="w-100" style="margin-bottom: 20px; font-family: sans-serif; color: #000;">
+              <tr>
+                <td style="vertical-align: top; width: 65%;">
+                  <div class="fw-bold text-dark" style="font-size: 16px; font-weight: 800; letter-spacing: 0.5px;">IKM TESTING (THAILAND) CO., LTD.</div>
+                  <div class="text-muted" style="font-size: 11px; line-height: 1.4; color: #444 !important; font-weight: 500;">
+                    155/167 Moo 5, Samnakthon Sub-district,<br>
+                    Banchang District, Rayong Province 21130<br>
+                    Thailand<br>
+                    Tel : +66(0) 38 601 996~7<br><br>
+                    Tax ID Number : 0215552000909<br>
+                    Head Office
+                  </div>
+                </td>
+                <td style="vertical-align: top; text-align: right; width: 35%;">
+                  <div style="font-size: 15px; font-weight: 900; color: #DC2626; margin-bottom: 5px; letter-spacing: 1px;">ORIGINAL</div>
+                  <img src="https://lh3.googleusercontent.com/d/15kgSg9bp-J9mYETYxw2BfAVNNNBAkusA" alt="IKM Logo" style="height: 42px; object-fit: contain; display: block; margin-left: auto; margin-bottom: 8px;" referrerpolicy="no-referrer">
+                  <div class="mt-2" style="line-height: 1.2;">
+                    <span class="badge bg-secondary mb-1">SO MASTER</span>
+                    <div class="font-monospace text-dark d-block fw-bold" id="print-so-no" style="font-size: 13px; font-weight: 700;">SO-XXXXX</div>
+                    <div class="small text-muted" id="print-so-date" style="font-size: 11px;">Date: --/--/----</div>
+                  </div>
+                </td>
+              </tr>
+            </table>
+            
+            <div class="text-center my-3">
+              <h5 class="fw-bold text-dark text-uppercase" id="print-so-title" style="letter-spacing: 1px; border-bottom: 2px solid #333; display: inline-block; padding-bottom: 4px; font-weight: 800; font-size: 16px;">SALES ORDER</h5>
             </div>
             
             <hr class="my-3">

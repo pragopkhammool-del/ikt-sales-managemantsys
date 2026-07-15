@@ -67,6 +67,29 @@ export default function QuotationManagement() {
     }, 3000);
   };
 
+  const exportToExcel = () => {
+    const table = document.getElementById("quotations-main-table");
+    if (!table) {
+      showToast("No table data found for export. Please make sure the list view is active.", "err");
+      return;
+    }
+    try {
+      // @ts-ignore
+      if (typeof XLSX !== 'undefined') {
+        // @ts-ignore
+        const wb = XLSX.utils.table_to_book(table, { sheet: "Quotations" });
+        // @ts-ignore
+        XLSX.writeFile(wb, `Quotations_Report_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        showToast("Excel report exported successfully.", "success");
+      } else {
+        showToast("XLSX library not loaded yet. Please try again in a few seconds.", "err");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Excel export failed.", "err");
+    }
+  };
+
   useEffect(() => {
     loadData();
   }, []);
@@ -102,6 +125,10 @@ export default function QuotationManagement() {
       total_value: q.total_value,
       tax_rate: q.tax_rate || 7,
       grand_total: q.grand_total,
+      currency: q.currency || "THB",
+      exchange_rate: q.exchange_rate || 1.0,
+      total_value_thb: q.total_value_thb || q.total_value,
+      grand_total_thb: q.grand_total_thb || q.grand_total,
     };
 
     // @ts-ignore
@@ -137,7 +164,7 @@ export default function QuotationManagement() {
       (q) => q.status === "Sent" || q.status === "Draft",
     ).length,
     rejected: quotations.filter((q) => q.status === "Rejected").length,
-    value: quotations.reduce((acc, q) => acc + (q.grand_total || 0), 0),
+    value: quotations.reduce((acc, q) => acc + (q.grand_total_thb || ((q.grand_total || 0) * (q.exchange_rate || 1.0))), 0),
   };
 
   const statusData = [
@@ -160,6 +187,12 @@ export default function QuotationManagement() {
             </p>
           </div>
           <div className="flex items-center gap-3">
+            <button
+              onClick={exportToExcel}
+              className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold shadow-sm flex items-center gap-2 cursor-pointer transition"
+            >
+              <Download className="w-4 h-4" /> Export Excel
+            </button>
             <button
               onClick={() => {
                 setEditingId("settings");
@@ -405,6 +438,12 @@ function QuoteList({
           >
             Approved
           </button>
+          <button
+            onClick={() => setStatusFilter("Rejected")}
+            className={`px-4 py-1.5 rounded-full text-sm font-bold transition-colors ${statusFilter === "Rejected" ? "bg-rose-600 text-white" : "bg-slate-200 text-slate-600 hover:bg-slate-300"}`}
+          >
+            Rejected
+          </button>
         </div>
         <div className="relative w-72">
           <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
@@ -418,7 +457,7 @@ function QuoteList({
         </div>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
+        <table id="quotations-main-table" className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-slate-50 border-b border-slate-200">
               <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
@@ -434,7 +473,7 @@ function QuoteList({
                 Date
               </th>
               <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">
-                Amount (THB)
+                Amount
               </th>
               <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">
                 Status
@@ -488,9 +527,18 @@ function QuoteList({
                   {q.quotation_date}
                 </td>
                 <td className="py-3 px-4 text-sm font-mono font-bold text-slate-800 text-right">
-                  {(q.grand_total || 0).toLocaleString(undefined, {
-                    minimumFractionDigits: 2,
-                  })}
+                  <div>
+                    {q.currency || "THB"} {(q.grand_total || 0).toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                    })}
+                  </div>
+                  {q.currency && q.currency !== "THB" && (
+                    <div className="text-[10px] text-slate-400 font-normal">
+                      (THB {(q.grand_total_thb || ((q.grand_total || 0) * (q.exchange_rate || 1.0))).toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                      })})
+                    </div>
+                  )}
                 </td>
                 <td className="py-3 px-4 text-center">
                   <StatusBadge status={q.status} />
@@ -668,7 +716,20 @@ function QuoteForm({ id, onClose, quotations, customers, onToast }: any) {
   const [customerEmail, setCustomerEmail] = useState(
     initialQuote?.customer_email || ""
   );
+  const [currency, setCurrency] = useState(initialQuote?.currency || "THB");
+  const [exchangeRate, setExchangeRate] = useState<number>(initialQuote?.exchange_rate || 1.0);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const handleCurrencyChange = (newCurr: string) => {
+    setCurrency(newCurr);
+    if (newCurr === "THB") {
+      setExchangeRate(1.0);
+    } else if (newCurr === "USD") {
+      setExchangeRate(36.5);
+    } else if (newCurr === "SGD") {
+      setExchangeRate(27.0);
+    }
+  };
 
   const currentEmail = typeof localStorage !== "undefined" ? localStorage.getItem("crm_user_email") : "";
   const currentName = typeof localStorage !== "undefined" ? localStorage.getItem("crm_user_fullname") : "";
@@ -810,6 +871,10 @@ function QuoteForm({ id, onClose, quotations, customers, onToast }: any) {
       total_value: subtotal,
       tax_rate: 7,
       grand_total: subtotal + tax,
+      currency: currency,
+      exchange_rate: exchangeRate,
+      total_value_thb: subtotal * exchangeRate,
+      grand_total_thb: (subtotal + tax) * exchangeRate,
     };
 
     // @ts-ignore
@@ -1038,6 +1103,36 @@ function QuoteForm({ id, onClose, quotations, customers, onToast }: any) {
               defaultValue={initialQuote?.cc}
               placeholder="e.g. -"
               className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-blue-700 mb-1.5">
+              Currency <span className="text-rose-500">*</span>
+            </label>
+            <select
+              name="currency"
+              value={currency}
+              onChange={(e) => handleCurrencyChange(e.target.value)}
+              className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm bg-blue-50/20 font-bold text-blue-950"
+            >
+              <option value="THB">THB (฿)</option>
+              <option value="USD">USD ($)</option>
+              <option value="SGD">SGD (S$)</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-blue-700 mb-1.5">
+              Exchange Rate (to THB)
+            </label>
+            <input
+              type="number"
+              step="any"
+              name="exchange_rate"
+              value={exchangeRate}
+              onChange={(e) => setExchangeRate(parseFloat(e.target.value) || 0)}
+              disabled={currency === "THB"}
+              placeholder="1.0"
+              className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm bg-blue-50/10 font-mono font-bold text-blue-950 disabled:opacity-50"
             />
           </div>
           <div>
@@ -1303,31 +1398,41 @@ function QuoteForm({ id, onClose, quotations, customers, onToast }: any) {
           </div>
 
           <div className="flex justify-end mt-4">
-            <div className="w-64 space-y-2 text-sm">
+            <div className="w-80 space-y-2 text-sm border bg-slate-50/50 p-3 rounded-lg">
               <div className="flex justify-between text-slate-600">
                 <span>Subtotal:</span>{" "}
-                <span className="font-mono">
-                  {calculateTotal().toLocaleString(undefined, {
+                <span className="font-mono font-bold">
+                  {currency} {calculateTotal().toLocaleString(undefined, {
                     minimumFractionDigits: 2,
                   })}
                 </span>
               </div>
               <div className="flex justify-between text-slate-600">
                 <span>VAT (7%):</span>{" "}
-                <span className="font-mono">
-                  {(calculateTotal() * 0.07).toLocaleString(undefined, {
+                <span className="font-mono font-bold">
+                  {currency} {(calculateTotal() * 0.07).toLocaleString(undefined, {
                     minimumFractionDigits: 2,
                   })}
                 </span>
               </div>
-              <div className="flex justify-between text-slate-900 font-bold text-lg pt-2 border-t border-slate-200">
+              <div className="flex justify-between text-slate-900 font-bold text-base pt-2 border-t border-slate-200">
                 <span>Grand Total:</span>{" "}
-                <span className="font-mono">
-                  {(calculateTotal() * 1.07).toLocaleString(undefined, {
+                <span className="font-mono text-blue-700">
+                  {currency} {(calculateTotal() * 1.07).toLocaleString(undefined, {
                     minimumFractionDigits: 2,
                   })}
                 </span>
               </div>
+              {currency !== "THB" && (
+                <div className="flex justify-between text-slate-600 border-t border-dashed border-slate-200 pt-2 font-medium">
+                  <span>In THB (Est.):</span>{" "}
+                  <span className="font-mono text-emerald-600 font-bold">
+                    THB {((calculateTotal() * 1.07) * exchangeRate).toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                    })}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -1581,14 +1686,14 @@ function PrintPreview({ id, onClose, onEdit, quotations, customers }: any) {
               </th>
               <th rowSpan={2} className={`${tableBorderStyle !== "horizontal" ? "border-l border-r" : ""} border-b-2 border-black font-bold p-1 text-center align-middle`}>
                 <div className="leading-tight">TOTAL PRICE</div>
-                <div className="text-[8.5px] font-bold text-black mt-0.5">THB</div>
+                <div className="text-[8.5px] font-bold text-black mt-0.5">{quote.currency || "THB"}</div>
               </th>
             </tr>
             <tr className="h-[16px] text-[8px] font-semibold">
               <th className={`${tableBorderStyle !== "horizontal" ? "border-l border-r" : ""} border-b-2 border-black text-center align-middle text-slate-500`}>Days</th>
               <th className={`${tableBorderStyle !== "horizontal" ? "border-l border-r" : ""} border-b-2 border-black text-center align-middle text-slate-500`}>
                 <div className="leading-none text-[8px]">Per Day</div>
-                <div className="text-[8.5px] font-bold text-black mt-0.5">THB</div>
+                <div className="text-[8.5px] font-bold text-black mt-0.5">{quote.currency || "THB"}</div>
               </th>
             </tr>
           </thead>
@@ -1641,9 +1746,9 @@ function PrintPreview({ id, onClose, onEdit, quotations, customers }: any) {
 
         {/* Total Value aligned right */}
         <div className="flex justify-end items-center mb-3">
-          <span className="text-[11px] font-bold text-black mr-6">Total Value</span>
-          <div className="w-[110px] py-1 px-2 text-right font-mono font-bold text-[11px] bg-white" style={{ borderTop: '1px solid black', borderBottom: '3px double black', borderLeft: 'none', borderRight: 'none', margin: 0 }}>
-            {quote.total_value.toLocaleString(undefined, {
+          <span className="text-[11px] font-bold text-black mr-6">Total Value ({quote.currency || "THB"})</span>
+          <div className="py-1 px-2 text-right font-mono font-bold text-[11px] bg-white" style={{ borderTop: '1px solid black', borderBottom: '3px double black', borderLeft: 'none', borderRight: 'none', margin: 0, minWidth: '110px' }}>
+            {quote.currency || "THB"} {quote.total_value.toLocaleString(undefined, {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2
             })}
@@ -1663,7 +1768,7 @@ function PrintPreview({ id, onClose, onEdit, quotations, customers }: any) {
             ) : (
               <>
                 <p className="m-0 p-0" style={{ margin: '0px 0px 1px 0px', padding: 0, lineHeight: '1.1' }}>- 30 days validity from date of quotation.</p>
-                <p className="m-0 p-0" style={{ margin: '0px 0px 1px 0px', padding: 0, lineHeight: '1.1' }}>- All prices above are quoted in THB</p>
+                <p className="m-0 p-0" style={{ margin: '0px 0px 1px 0px', padding: 0, lineHeight: '1.1' }}>- All prices above are quoted in {quote.currency || "THB"}</p>
                 <p className="m-0 p-0" style={{ margin: '0px 0px 1px 0px', padding: 0, lineHeight: '1.1' }}>- All prices does not include 7% VAT</p>
                 <p className="m-0 p-0" style={{ margin: '0px 0px 1px 0px', padding: 0, lineHeight: '1.1' }}>- Payment term: {quote.payment_term || '30 Days'} from date of invoice.</p>
                 <p className="m-0 p-0" style={{ margin: '0px 0px 1px 0px', padding: 0, lineHeight: '1.1' }}>- Please state our IKM reference no. on your work/purchase order.</p>
