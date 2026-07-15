@@ -78,6 +78,25 @@
                 </button>
               </div>
             </div>
+
+            <!-- Currency Conversion Exchange Rates -->
+            <div class="row g-2 align-items-center mt-2 border-top pt-2">
+              <div class="col-12 col-md-4">
+                <span class="small fw-bold text-indigo"><i class="fas fa-coins me-1"></i> กำหนดอัตราแลกเปลี่ยนเงินตรา (แปลงเป็น THB ในรายงานเท่านั้น)</span>
+              </div>
+              <div class="col-6 col-md-4">
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text bg-light text-muted font-monospace fw-bold" style="font-size: 0.75rem;">USD to THB</span>
+                  <input type="number" step="0.01" class="form-control font-monospace text-center fw-bold text-dark animate-pulse-once" id="bi-rate-usd" value="35.00" onchange="rebuildBICharts()" onkeyup="rebuildBICharts()">
+                </div>
+              </div>
+              <div class="col-6 col-md-4">
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text bg-light text-muted font-monospace fw-bold" style="font-size: 0.75rem;">SGD to THB</span>
+                  <input type="number" step="0.01" class="form-control font-monospace text-center fw-bold text-dark animate-pulse-once" id="bi-rate-sgd" value="26.00" onchange="rebuildBICharts()" onkeyup="rebuildBICharts()">
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -231,6 +250,9 @@
       const qVal = document.getElementById('bi-quarter').value;
       const teamVal = document.getElementById('bi-team').value;
 
+      const usdRate = parseFloat(document.getElementById('bi-rate-usd').value) || 35.00;
+      const sgdRate = parseFloat(document.getElementById('bi-rate-sgd').value) || 26.00;
+
       const quotes = await SupabaseDB.getQuotations() || [];
       const invoices = await SupabaseDB.getInvoices() || [];
       const opps = await SupabaseDB.getOpportunities() || [];
@@ -246,7 +268,11 @@
       });
 
       filteredQuotes.forEach(q => {
-        quoteSum += q.grand_total || 0;
+        const cur = (q.currency || 'THB').toUpperCase();
+        let rate = 1.0;
+        if (cur === 'USD') rate = usdRate;
+        else if (cur === 'SGD') rate = sgdRate;
+        quoteSum += (q.grand_total || 0) * rate;
       });
 
       const filteredInvoices = invoices.filter(i => {
@@ -255,9 +281,15 @@
       });
 
       filteredInvoices.forEach(i => {
-        billSum += i.grand_total || 0;
+        const cur = (i.currency || 'THB').toUpperCase();
+        let rate = 1.0;
+        if (cur === 'USD') rate = usdRate;
+        else if (cur === 'SGD') rate = sgdRate;
+        const valueInThb = (i.grand_total || 0) * rate;
+
+        billSum += valueInThb;
         if (i.status === 'Paid') {
-          paidSum += i.grand_total || 0;
+          paidSum += valueInThb;
         }
       });
 
@@ -365,13 +397,20 @@
       const tbody = document.getElementById('bi-top-customers');
       tbody.innerHTML = '';
 
+      const usdRate = parseFloat(document.getElementById('bi-rate-usd').value) || 35.00;
+      const sgdRate = parseFloat(document.getElementById('bi-rate-sgd').value) || 26.00;
+
       const billingMap = {};
       invoices.forEach(i => {
         const cName = i.customer ? i.customer.customer_name : 'Customer Not Specified';
         if (!billingMap[cName]) {
           billingMap[cName] = { billed: 0, quoted: 0 };
         }
-        billingMap[cName].billed += i.grand_total || 0;
+        const cur = (i.currency || 'THB').toUpperCase();
+        let rate = 1.0;
+        if (cur === 'USD') rate = usdRate;
+        else if (cur === 'SGD') rate = sgdRate;
+        billingMap[cName].billed += (i.grand_total || 0) * rate;
       });
 
       const sorted = Object.keys(billingMap).map(key => {
@@ -401,6 +440,9 @@
       const tbody = document.getElementById('bi-team-ranking');
       tbody.innerHTML = '';
 
+      const usdRate = parseFloat(document.getElementById('bi-rate-usd').value) || 35.00;
+      const sgdRate = parseFloat(document.getElementById('bi-rate-sgd').value) || 26.00;
+
       const staffMap = {};
       quotes.forEach(q => {
         const name = q.sales_person || 'Donlapat (Admin)';
@@ -408,7 +450,12 @@
           staffMap[name] = { count: 0, sum: 0 };
         }
         staffMap[name].count++;
-        staffMap[name].sum += q.grand_total || 0;
+
+        const cur = (q.currency || 'THB').toUpperCase();
+        let rate = 1.0;
+        if (cur === 'USD') rate = usdRate;
+        else if (cur === 'SGD') rate = sgdRate;
+        staffMap[name].sum += (q.grand_total || 0) * rate;
       });
 
       const sorted = Object.keys(staffMap).map(key => {

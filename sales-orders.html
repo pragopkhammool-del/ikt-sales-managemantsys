@@ -19,52 +19,53 @@
 
   <style>
     @media print {
+      @page {
+        size: A4;
+        margin: 0;
+      }
       body {
         margin: 0 !important;
         padding: 0 !important;
         background: #fff !important;
       }
-      .no-print, .modal-header, .modal-footer, .app-sidebar, .app-header {
-        display: none !important;
+      body * {
+        visibility: hidden;
       }
-      #soPrintModal {
-        position: absolute !important;
-        left: 0 !important;
-        top: 0 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        width: 100% !important;
-        height: auto !important;
+      #soPrintModal, #soPrintModal * {
+        visibility: visible !important;
+      }
+      .modal, .modal-dialog, .modal-content, .modal-body {
+        position: static !important;
         border: none !important;
-        background: #fff !important;
-      }
-      #soPrintModal .modal-dialog {
+        box-shadow: none !important;
+        background: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
         max-width: 100% !important;
         width: 100% !important;
+        height: auto !important;
+      }
+      .no-print, .modal-header, .modal-footer, .app-sidebar, .app-header {
+        display: none !important;
+        height: 0 !important;
+        padding: 0 !important;
         margin: 0 !important;
-        padding: 0 !important;
-      }
-      #soPrintModal .modal-content {
-        border: none !important;
-        box-shadow: none !important;
-        background: #fff !important;
-      }
-      #soPrintModal .modal-body {
-        max-height: none !important;
-        overflow: visible !important;
-        padding: 0 !important;
-        background: #fff !important;
       }
       #print-area {
+        visibility: visible !important;
+        position: absolute !important;
+        left: 50% !important;
+        top: 0 !important;
+        transform: translateX(-50%) !important;
         width: 210mm !important;
-        min-height: 297mm !important;
-        padding: 10mm !important;
+        height: 297mm !important;
+        padding: 15mm !important;
         box-sizing: border-box !important;
-        border: none !important;
+        border: 2px solid #555 !important;
+        border-radius: 4px !important;
         box-shadow: none !important;
         background-color: #ffffff !important;
-        position: relative !important;
-        visibility: visible !important;
+        margin: 0 !important;
       }
       #print-area * {
         visibility: visible !important;
