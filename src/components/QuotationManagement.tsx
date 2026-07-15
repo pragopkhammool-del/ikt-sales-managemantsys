@@ -159,7 +159,7 @@ export default function QuotationManagement() {
 
   const dashboardData = {
     total: quotations.length,
-    approved: quotations.filter((q) => q.status === "Approved").length,
+    approved: quotations.filter((q) => q.status === "Approved" || q.status === "Invoiced").length,
     pending: quotations.filter(
       (q) => q.status === "Sent" || q.status === "Draft",
     ).length,
@@ -406,7 +406,10 @@ function QuoteList({
       q.quotation_no.toLowerCase().includes(search.toLowerCase()) ||
       q.title.toLowerCase().includes(search.toLowerCase()) ||
       custName.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === "ALL" || q.status === statusFilter;
+    const matchesStatus =
+      statusFilter === "ALL" ||
+      q.status === statusFilter ||
+      (statusFilter === "Approved" && q.status === "Invoiced");
     return matchesSearch && matchesStatus;
   });
 
@@ -894,7 +897,7 @@ function QuoteForm({ id, onClose, quotations, customers, onToast }: any) {
           // Double check if Sales Order already exists for this quotation to prevent duplicates
           // @ts-ignore
           const existingOrders = await window.SupabaseDB.getSalesOrders() || [];
-          const alreadyExists = existingOrders.some((so: any) => so.quotation_id === savedQuote.id);
+          const alreadyExists = existingOrders.some((so: any) => String(so.quotation_id) === String(savedQuote.id));
 
           if (!alreadyExists) {
             // Map items

@@ -1334,20 +1334,20 @@ export default function App() {
                           <span className="text-emerald-400 bg-emerald-950 border border-emerald-900 text-[9px] px-2 py-0.5 rounded">Approved & Signed</span>
                         </div>
                         <div className="font-mono text-xl font-black text-white mt-2">
-                          ฿{quotations.filter(q => q.status === 'Approved').reduce((sum, q) => sum + q.grand_total, 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+                          ฿{quotations.filter(q => q.status === 'Approved' || q.status === 'Invoiced').reduce((sum, q) => sum + q.grand_total, 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}
                         </div>
                         <div className="mt-3.5">
                           <div className="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden">
                             <div className="bg-emerald-500 h-1.5 rounded-full" style={{ 
                               width: quotations.length > 0 
-                                ? `${(quotations.filter(q => q.status === 'Approved').length / quotations.length) * 100}%` 
+                                ? `${(quotations.filter(q => q.status === 'Approved' || q.status === 'Invoiced').length / quotations.length) * 100}%` 
                                 : '0%' 
                             }}></div>
                           </div>
                           <div className="flex justify-between text-[10px] text-slate-500 mt-1.5">
                             <span>อนุมัติไปแล้ว</span>
                             <span className="text-emerald-400 font-bold">
-                              {quotations.filter(q => q.status === 'Approved').length} ใบ ({quotations.length > 0 ? ((quotations.filter(q => q.status === 'Approved').length / quotations.length) * 100).toFixed(0) : 0}%)
+                              {quotations.filter(q => q.status === 'Approved' || q.status === 'Invoiced').length} ใบ ({quotations.length > 0 ? ((quotations.filter(q => q.status === 'Approved' || q.status === 'Invoiced').length / quotations.length) * 100).toFixed(0) : 0}%)
                             </span>
                           </div>
                         </div>
