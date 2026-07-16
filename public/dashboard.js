@@ -4,22 +4,48 @@ document.addEventListener('DOMContentLoaded', () => {
   if (window.location.pathname.endsWith('index.html') || window.location.pathname.endsWith('/') || window.location.pathname === '') {
     loadDashboardData();
     initializeRealtimeClock();
+    setupDashboardRealtime();
   }
 });
 
 let allCustomers = [];
 let allOpportunities = [];
 let allActivities = [];
+let systemUsers = []; // Will be fetched from Supabase
 
 let statusChartInstance = null;
 let pipelineChartInstance = null;
 
+async function setupDashboardRealtime() {
+  if (!window.supabaseClient) return;
+  // Listen to all changes on relevant tables
+  const tables = ['customers', 'opportunities', 'activities'];
+  tables.forEach(table => {
+    window.supabaseClient
+      .channel(`public:${table}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: table }, payload => {
+        console.log(`Realtime change received: ${table}!`, payload);
+        loadDashboardData();
+      })
+      .subscribe();
+  });
+}
+
 async function loadDashboardData() {
   toggleGlobalLoader(true);
   try {
-    allCustomers = await SupabaseDB.getCustomers();
-    allOpportunities = await SupabaseDB.getOpportunities();
-    allActivities = await SupabaseDB.getActivities();
+    // Use Promise.all for performance
+    const [customers, opportunities, activities, users] = await Promise.all([
+      SupabaseDB.getCustomers(),
+      SupabaseDB.getOpportunities(),
+      SupabaseDB.getActivities(),
+      fetchUsersFromSupabase()
+    ]);
+    
+    allCustomers = customers;
+    allOpportunities = opportunities;
+    allActivities = activities;
+    systemUsers = users;
 
     // Set welcome profile username if logged in
     const cachedUser = localStorage.getItem('crm_user_role') || 'Admin';
@@ -33,10 +59,20 @@ async function loadDashboardData() {
     onFilterChange();
 
   } catch (error) {
-    console.error("Failed to compile dashboard metrics", error);
+    console.error("Failed to load dashboard metrics", error);
     showToastAlert('Failed to load dashboard metrics. Please check network connection.', 'danger');
   } finally {
     toggleGlobalLoader(false);
+  }
+}
+
+async function fetchUsersFromSupabase() {
+  try {
+    const users = await SupabaseDB.getUsers();
+    return users;
+  } catch (error) {
+    console.error("Failed to fetch users", error);
+    return [];
   }
 }
 
@@ -410,15 +446,7 @@ function renderRecentTimeline(activities, customers, opportunities) {
     const actionLabel = act.action;
     
     let targetLabel = `ID: ${act.target_id.slice(0,6)}`;
-    const storedUsers = localStorage.getItem('crm_users_list');
-    const systemUsers = storedUsers ? JSON.parse(storedUsers) : [
-      { id: "d1ef4942-83b3-4f9e-bbb4-7a0df47ab001", username: "apiyut", fullname: "Apiyut Noeikhiaw", role: "Admin", email: "Apiyut.noeikhiaw@th.ikm.com" },
-      { id: "d2ef4942-83b3-4f9e-bbb4-7a0df47ab002", username: "pimjai", fullname: "Pimjai Kittikun", role: "Sales Manager", email: "pimjai.k@ikm-testing.co.th" },
-      { id: "d3ef4942-83b3-4f9e-bbb4-7a0df47ab003", username: "wiriya", fullname: "Wiriya Sawangngam", role: "Sales Rep", email: "wiriya.s@ikm-testing.co.th" },
-      { id: "d4ef4942-83b3-4f9e-bbb4-7a0df47ab004", username: "somsri", fullname: "Somsri Jitprasong", role: "Auditor", email: "somsri.j@ikm-testing.co.th" },
-      { id: "657229df-fb36-4978-bf94-4a52e04f7ae0", username: "art", fullname: "ART KIT", role: "Admin", email: "artkummool@gmail.com" }
-    ];
-
+    
     let matchedUser = null;
     if (act.created_by) {
       matchedUser = systemUsers.find(u => u.id === act.created_by) || { fullname: act.created_by_name };
@@ -438,16 +466,6 @@ function renderRecentTimeline(activities, customers, opportunities) {
             const rp = rawSalesPerson.toLowerCase();
             return fn.includes(rp) || rp.includes(fn);
           });
-  
-          if (!matchedUser) {
-            if (rawSalesPerson.includes("เอกชัย") || rawSalesPerson.includes("S01") || rawSalesPerson.includes("S1")) {
-              matchedUser = systemUsers.find(u => u.fullname.includes("วิริยะ") || u.role === "Sales Rep" || u.role.includes("Sales"));
-            } else if (rawSalesPerson.includes("สุชาดา") || rawSalesPerson.includes("S02") || rawSalesPerson.includes("S2")) {
-              matchedUser = systemUsers.find(u => u.fullname.includes("พิมพ์ใจ") || u.role === "Sales Manager" || u.role.includes("Manager"));
-            } else if (rawSalesPerson.includes("ธนพล") || rawSalesPerson.includes("S03") || rawSalesPerson.includes("S3")) {
-              matchedUser = systemUsers.find(u => u.fullname.includes("Apiyut") || u.role === "Admin" || u.role.includes("Admin"));
-            }
-          }
         }
       } else if (act.target_type === 'Customer') {
         const cust = (customers || []).find(c => c.id === act.target_id) || (typeof allCustomers !== 'undefined' ? allCustomers.find(c => c.id === act.target_id) : null);
@@ -460,27 +478,16 @@ function renderRecentTimeline(activities, customers, opportunities) {
             const rp = rawSalesPerson.toLowerCase();
             return (rp && fn.includes(rp)) || (rp && rp.includes(fn)) || u.id === rawSalesPerson;
           });
-  
-          if (!matchedUser) {
-            if (rawSalesPerson.includes("เอกชัย") || rawSalesPerson.includes("S01") || rawSalesPerson.includes("S1")) {
-              matchedUser = systemUsers.find(u => u.fullname.includes("วิริยะ") || u.role === "Sales Rep" || u.role.includes("Sales"));
-            } else if (rawSalesPerson.includes("สุชาดา") || rawSalesPerson.includes("S02") || rawSalesPerson.includes("S2")) {
-              matchedUser = systemUsers.find(u => u.fullname.includes("พิมพ์ใจ") || u.role === "Sales Manager" || u.role.includes("Manager"));
-            } else if (rawSalesPerson.includes("ธนพล") || rawSalesPerson.includes("S03") || rawSalesPerson.includes("S3")) {
-              matchedUser = systemUsers.find(u => u.fullname.includes("Apiyut") || u.role === "Admin" || u.role.includes("Admin"));
-            }
-          }
         }
       }
     }
 
     if (!matchedUser) {
-       // Fallback to current user if activity doesn't have the explicit actor logged
-       const currentUser = (window.SupabaseDB && window.SupabaseDB.getCurrentUser) ? window.SupabaseDB.getCurrentUser() : systemUsers[0];
-       matchedUser = currentUser;
+       // Fallback
+       matchedUser = systemUsers[0] || { fullname: "Admin" };
     }
 
-    const displayUsername = matchedUser && matchedUser.fullname ? matchedUser.fullname : (systemUsers[0] ? systemUsers[0].fullname : "Apiyut (Admin)");
+    const displayUsername = matchedUser && matchedUser.fullname ? matchedUser.fullname : (systemUsers[0] ? systemUsers[0].fullname : "Admin");
     const cleanUsername = displayUsername.split('(')[0].trim();
     targetLabel = `<i class="fa fa-user text-white opacity-75 me-1" style="font-size: 8px;"></i>${cleanUsername}`;
     
