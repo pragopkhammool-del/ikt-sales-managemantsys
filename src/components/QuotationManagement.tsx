@@ -125,10 +125,6 @@ export default function QuotationManagement() {
       total_value: q.total_value,
       tax_rate: q.tax_rate || 7,
       grand_total: q.grand_total,
-      currency: q.currency || "THB",
-      exchange_rate: q.exchange_rate || 1.0,
-      total_value_thb: q.total_value_thb || q.total_value,
-      grand_total_thb: q.grand_total_thb || q.grand_total,
     };
 
     // @ts-ignore
@@ -894,10 +890,6 @@ function QuoteForm({ id, onClose, quotations, customers, onToast }: any) {
       total_value: subtotal,
       tax_rate: 7,
       grand_total: subtotal + tax,
-      currency: currency,
-      exchange_rate: exchangeRate,
-      total_value_thb: subtotal * exchangeRate,
-      grand_total_thb: (subtotal + tax) * exchangeRate,
     };
 
     // @ts-ignore
