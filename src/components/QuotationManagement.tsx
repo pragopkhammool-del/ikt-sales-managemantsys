@@ -56,6 +56,7 @@ export default function QuotationManagement() {
   const [activeTab, setActiveTab] = useState<"dashboard" | "list">("dashboard");
   const [quotations, setQuotations] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [printId, setPrintId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'err' } | null>(null);
@@ -101,8 +102,11 @@ export default function QuotationManagement() {
       const quotes = (await window.SupabaseDB.getQuotations()) || [];
       // @ts-ignore
       const custs = (await window.SupabaseDB.getCustomers()) || [];
+      // @ts-ignore
+      const usrs = (await window.SupabaseDB.getUsers()) || [];
       setQuotations(quotes);
       setCustomers(custs);
+      setUsers(usrs);
     }
   };
 
@@ -337,6 +341,7 @@ export default function QuotationManagement() {
             <QuoteList
               quotations={quotations}
               customers={customers}
+              users={users}
               onEdit={setEditingId}
               onPrint={setPrintId}
               onDuplicate={handleDuplicate}
@@ -385,6 +390,7 @@ function KPICard({ title, value, subtitle, icon, bg, border }: any) {
 function QuoteList({
   quotations,
   customers,
+  users,
   onEdit,
   onPrint,
   onDuplicate,
@@ -455,9 +461,11 @@ function QuoteList({
             className="px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-semibold text-slate-700"
           >
             <option value="ALL">All Sales Reps</option>
-            <option value="Ekachai Wongdee (S01)">Ekachai Wongdee (S01)</option>
-            <option value="Suchada Lertwiriya (S02)">Suchada Lertwiriya (S02)</option>
-            <option value="Thanaphol Khamdee (S03)">Thanaphol Khamdee (S03)</option>
+            {users.map((user) => (
+              <option key={user.id} value={user.fullname}>
+                {user.fullname}
+              </option>
+            ))}
           </select>
           <div className="relative w-72">
             <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
@@ -890,6 +898,10 @@ function QuoteForm({ id, onClose, quotations, customers, onToast }: any) {
       total_value: subtotal,
       tax_rate: 7,
       grand_total: subtotal + tax,
+      currency: currency,
+      exchange_rate: exchangeRate,
+      total_value_thb: subtotal * exchangeRate,
+      grand_total_thb: (subtotal + tax) * exchangeRate,
     };
 
     // @ts-ignore
