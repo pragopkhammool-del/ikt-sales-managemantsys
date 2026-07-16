@@ -714,13 +714,13 @@ const TABLE_COLUMNS = {
   opportunities: [
     'id', 'opportunity_no', 'customer_id', 'project_name', 'service_type',
     'lead_source', 'estimated_value', 'success_probability', 'expected_close_date',
-    'sales_person_id', 'status', 'remarks', 'created_at'
+    'sales_person_id', 'status', 'remarks', 'project_location', 'created_at'
   ],
   quotations: [
     'id', 'quotation_no', 'customer_id', 'opportunity_id', 'title',
     'quotation_date', 'validity_days', 'payment_term', 'status', 'sales_person',
     'items', 'total_value', 'tax_rate', 'grand_total', 'terms_conditions', 'remarks',
-    'revision_number', 'created_at'
+    'revision_number', 'currency', 'exchange_rate', 'created_at'
   ],
   sales_orders: [
     'id', 'so_no', 'quotation_id', 'customer_id', 'project_name', 'total_amount',

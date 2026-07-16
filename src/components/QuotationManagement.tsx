@@ -398,6 +398,7 @@ function QuoteList({
 }: any) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
+  const [salesRepFilter, setSalesRepFilter] = useState("ALL");
 
   const filtered = quotations.filter((q) => {
     const custObj = customers?.find((c: any) => c.id === q.customer_id) || q.customer;
@@ -410,13 +411,16 @@ function QuoteList({
       statusFilter === "ALL" ||
       q.status === statusFilter ||
       (statusFilter === "Approved" && q.status === "Invoiced");
-    return matchesSearch && matchesStatus;
+    const matchesSalesRep =
+      salesRepFilter === "ALL" ||
+      (q.sales_person || "").toLowerCase() === salesRepFilter.toLowerCase();
+    return matchesSearch && matchesStatus && matchesSalesRep;
   });
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-      <div className="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center gap-4">
-        <div className="flex gap-2">
+      <div className="p-4 border-b border-slate-200 bg-slate-50 flex flex-wrap justify-between items-center gap-4">
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setStatusFilter("ALL")}
             className={`px-4 py-1.5 rounded-full text-sm font-bold transition-colors ${statusFilter === "ALL" ? "bg-slate-800 text-white" : "bg-slate-200 text-slate-600 hover:bg-slate-300"}`}
@@ -448,15 +452,27 @@ function QuoteList({
             Rejected
           </button>
         </div>
-        <div className="relative w-72">
-          <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search quotations..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+        <div className="flex gap-2 items-center">
+          <select
+            value={salesRepFilter}
+            onChange={(e) => setSalesRepFilter(e.target.value)}
+            className="px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-semibold text-slate-700"
+          >
+            <option value="ALL">All Sales Reps</option>
+            <option value="Ekachai Wongdee (S01)">Ekachai Wongdee (S01)</option>
+            <option value="Suchada Lertwiriya (S02)">Suchada Lertwiriya (S02)</option>
+            <option value="Thanaphol Khamdee (S03)">Thanaphol Khamdee (S03)</option>
+          </select>
+          <div className="relative w-72">
+            <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search quotations..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
         </div>
       </div>
       <div className="overflow-x-auto">
@@ -470,13 +486,16 @@ function QuoteList({
                 Sale Rep
               </th>
               <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                Project / Customer
+                Customer
+              </th>
+              <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                Project Name
               </th>
               <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
                 Date
               </th>
               <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">
-                Amount
+                Amount (Excl. VAT)
               </th>
               <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">
                 Status
@@ -502,15 +521,15 @@ function QuoteList({
                 <td className="py-3 px-4 text-sm font-medium text-slate-700">
                   {getUsername(q.sales_person || "ธนพล คำดี (S03)")}
                 </td>
+                <td className="py-3 px-4 text-sm font-semibold text-slate-800">
+                  {(() => {
+                    const custObj = customers?.find((c: any) => c.id === q.customer_id) || q.customer;
+                    return custObj?.customer_name || q.customer_name || "N/A";
+                  })()}
+                </td>
                 <td className="py-3 px-4">
-                  <div className="text-sm font-bold text-slate-800">
+                  <div className="text-sm font-medium text-slate-700">
                     {q.title}
-                  </div>
-                  <div className="text-xs text-slate-500">
-                    {(() => {
-                      const custObj = customers?.find((c: any) => c.id === q.customer_id) || q.customer;
-                      return custObj?.customer_name || q.customer_name || "N/A";
-                    })()}
                   </div>
                   <div className="text-[10px] text-slate-400 font-mono mt-1 flex flex-wrap gap-1.5">
                     <span className="bg-slate-100 text-slate-600 px-1 rounded">
@@ -531,13 +550,13 @@ function QuoteList({
                 </td>
                 <td className="py-3 px-4 text-sm font-mono font-bold text-slate-800 text-right">
                   <div>
-                    {q.currency || "THB"} {(q.grand_total || 0).toLocaleString(undefined, {
+                    {q.currency || "THB"} {(q.total_value !== undefined ? q.total_value : (q.grand_total ? q.grand_total / 1.07 : 0)).toLocaleString(undefined, {
                       minimumFractionDigits: 2,
                     })}
                   </div>
                   {q.currency && q.currency !== "THB" && (
                     <div className="text-[10px] text-slate-400 font-normal">
-                      (THB {(q.grand_total_thb || ((q.grand_total || 0) * (q.exchange_rate || 1.0))).toLocaleString(undefined, {
+                      (THB {(q.total_value_thb !== undefined ? q.total_value_thb : (q.grand_total_thb ? q.grand_total_thb / 1.07 : (q.total_value || 0) * (q.exchange_rate || 1.0))).toLocaleString(undefined, {
                         minimumFractionDigits: 2,
                       })})
                     </div>

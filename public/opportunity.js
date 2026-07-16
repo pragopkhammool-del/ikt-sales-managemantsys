@@ -28,7 +28,7 @@ function renderOpportunityRows(opportunities) {
   if (opportunities.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="9" class="text-center text-muted p-4">
+        <td colspan="11" class="text-center text-muted p-4">
           <i class="fas fa-handshake d-block fs-2 mb-2 opacity-50"></i>
           No sales opportunities found in the database.
         </td>
@@ -42,7 +42,6 @@ function renderOpportunityRows(opportunities) {
 
   tbody.innerHTML = opportunities.map(opp => {
     const custName = opp.customer ? opp.customer.customer_name : 'No customer record';
-    const weightedVal = parseFloat(opp.estimated_value) * (parseInt(opp.success_probability) / 100);
 
     // Dynamic stats badges
     let statusClass = 'badge-lead';
@@ -79,17 +78,15 @@ function renderOpportunityRows(opportunities) {
       <tr class="align-middle">
         <td><span class="font-monospace fw-bold text-primary">${codeText}</span></td>
         <td>
-          <div class="fw-bold text-dark fs-6">${projText}</div>
-          <div class="small text-muted py-0.5"><i class="fa fa-building"></i> ${clientText}</div>
+          <div class="fw-bold text-dark"><i class="fa fa-building me-1"></i> ${clientText}</div>
+        </td>
+        <td>
+          <div class="fw-bold text-dark">${projText}</div>
         </td>
         <td><span class="badge bg-light text-dark border">${opp.service_type}</span></td>
-        <td>
-          <div class="fw-bold text-dark">${numFormatter.format(opp.estimated_value)}</div>
-          <div class="text-xs text-muted">Success Probability: ${opp.success_probability}%</div>
-        </td>
-        <td>
-          <div class="fw-semibold text-color-indigo font-monospace" style="font-size:0.82rem;">${numFormatter.format(weightedVal)}</div>
-        </td>
+        <td><span class="text-muted small fw-semibold">${opp.project_location || '-'}</span></td>
+        <td class="font-monospace fw-bold text-dark">${numFormatter.format(opp.estimated_value)}</td>
+        <td class="text-center font-monospace fw-bold text-indigo">${opp.success_probability || 0}%</td>
         <td class="font-monospace small font-bold">${opp.expected_close_date || '-'}</td>
         <td>
           <div class="small fw-semibold text-dark" style="font-size: 0.8rem;">${(window.SupabaseDB && window.SupabaseDB.getUsernameOrDisplayName) ? window.SupabaseDB.getUsernameOrDisplayName(opp.sales_person_id) : (opp.sales_person_id || '-')}</div>
@@ -129,24 +126,60 @@ function highlightMatch(text, query) {
 
 function initOpportunitiesEvents() {
   const searchInput = document.getElementById('opportunity-search-input');
-  if (searchInput) {
-    searchInput.addEventListener('input', () => {
-      const q = searchInput.value.toLowerCase().trim();
-      const filtered = allOpportunitiesCached.filter(o => {
+  const salesRepSelect = document.getElementById('opportunity-filter-salesrep');
+  const statusSelectors = document.querySelectorAll('.opp-status-pill-filter');
+
+  function applyAllFilters() {
+    const q = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    const selectedSalesRep = salesRepSelect ? salesRepSelect.value : 'ALL';
+    
+    let activeStatus = 'ALL';
+    const activePill = document.querySelector('.opp-status-pill-filter.active');
+    if (activePill) {
+      activeStatus = activePill.getAttribute('data-status');
+    }
+
+    const filtered = allOpportunitiesCached.filter(o => {
+      // 1. Status Filter
+      if (activeStatus !== 'ALL' && o.status !== activeStatus) {
+        return false;
+      }
+
+      // 2. Sales Rep Filter
+      if (selectedSalesRep !== 'ALL') {
+        const salesRepId = o.sales_person_id || '';
+        if (salesRepId !== selectedSalesRep) {
+          return false;
+        }
+      }
+
+      // 3. Search text query
+      if (q) {
         const custName = o.customer ? o.customer.customer_name : '';
-        return o.project_name.toLowerCase().includes(q) ||
+        const matchText = o.project_name.toLowerCase().includes(q) ||
                o.opportunity_no.toLowerCase().includes(q) ||
                custName.toLowerCase().includes(q) ||
                o.status.toLowerCase().includes(q) ||
                o.service_type.toLowerCase().includes(q) ||
-               o.sales_person_id.toLowerCase().includes(q);
-      });
-      renderOpportunityRows(filtered);
+               (o.sales_person_id || '').toLowerCase().includes(q);
+        if (!matchText) return false;
+      }
+
+      return true;
     });
+
+    renderOpportunityRows(filtered);
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener('input', applyAllFilters);
+  }
+
+  if (salesRepSelect) {
+    salesRepSelect.addEventListener('change', applyAllFilters);
   }
 
   // Quick Status Filter buttons
-  const statusSelectors = document.querySelectorAll('.opp-status-pill-filter');
   statusSelectors.forEach(btn => {
     btn.addEventListener('click', (e) => {
       statusSelectors.forEach(b => b.classList.remove('active', 'btn-primary'));
@@ -155,13 +188,7 @@ function initOpportunitiesEvents() {
       btn.classList.add('active', 'btn-primary');
       btn.classList.remove('btn-outline-secondary');
 
-      const filterStatus = btn.getAttribute('data-status');
-      if (filterStatus === 'ALL') {
-        renderOpportunityRows(allOpportunitiesCached);
-      } else {
-        const filtered = allOpportunitiesCached.filter(o => o.status === filterStatus);
-        renderOpportunityRows(filtered);
-      }
+      applyAllFilters();
     });
   });
 }

@@ -129,14 +129,21 @@
                   <input type="text" class="form-control" id="inv-search-input" placeholder="Search by Invoice number, project name, customer name...">
                 </div>
               </div>
-              <div class="col-12 col-md-3">
+              <div class="col-12 col-md-4">
                 <select class="form-select" id="inv-filter-customer">
                   <option value="">-- All Customer Accounts --</option>
                 </select>
               </div>
-              <div class="col-12 col-md-5 d-flex align-items-center text-muted small px-3">
-                <i class="fa fa-info-circle text-success me-2"></i> 
-                <span>Invoice formats are numbered as <strong>INV-XXXX-YY</strong> to ensure compliant sequence audits.</span>
+              <div class="col-12 col-md-4">
+                <div class="input-group">
+                  <span class="input-group-text bg-light text-muted"><i class="fa fa-user-tie"></i></span>
+                  <select class="form-select" id="inv-filter-salesrep">
+                    <option value="ALL">-- All Sales Reps --</option>
+                    <option value="Ekachai Wongdee (S01)">Ekachai Wongdee (S01)</option>
+                    <option value="Suchada Lertwiriya (S02)">Suchada Lertwiriya (S02)</option>
+                    <option value="Thanaphol Khamdee (S03)">Thanaphol Khamdee (S03)</option>
+                  </select>
+                </div>
               </div>
             </div>
           </div>
@@ -773,6 +780,7 @@
       // Bind Search & Filters
       document.getElementById('inv-search-input').addEventListener('input', filterAndDrawTable);
       document.getElementById('inv-filter-customer').addEventListener('change', filterAndDrawTable);
+      document.getElementById('inv-filter-salesrep').addEventListener('change', filterAndDrawTable);
 
       // Auto-populate search from URL parameter if provided
       const urlParams = new URLSearchParams(window.location.search);
@@ -818,6 +826,7 @@
     function filterAndDrawTable() {
       const search = document.getElementById('inv-search-input').value.toLowerCase().trim();
       const customerVal = document.getElementById('inv-filter-customer').value;
+      const salesRepVal = document.getElementById('inv-filter-salesrep').value;
 
       const activePill = document.querySelector('.i-status-pill.active');
       const statusVal = activePill ? activePill.getAttribute('data-status') : 'ALL';
@@ -836,8 +845,9 @@
 
         const matchesCustomer = !customerVal || i.customer_id === customerVal;
         const matchesStatus = statusVal === 'ALL' || i.status === statusVal;
+        const matchesSalesRep = salesRepVal === 'ALL' || (i.sales_person || '').toLowerCase() === salesRepVal.toLowerCase();
 
-        return matchesSearch && matchesCustomer && matchesStatus;
+        return matchesSearch && matchesCustomer && matchesStatus && matchesSalesRep;
       });
 
       if (filtered.length === 0) {
