@@ -600,8 +600,8 @@
         const matchesStatus = statusVal === 'ALL' || localStatus === statusVal;
         
         const salesRepId = so.sales_person_id || so.sales_person || '';
-        const salesRepName = userMap.get(salesRepId) || salesRepId; // Try to map ID to name, else use the value itself (which might be a name)
-        const matchesSalesRep = salesRepVal === 'ALL' || salesRepName.toLowerCase() === salesRepVal.toLowerCase();
+        const salesRepName = (userMap.get(salesRepId) || salesRepId || '').trim();
+        const matchesSalesRep = salesRepVal === 'ALL' || salesRepName.toLowerCase() === salesRepVal.toLowerCase().trim();
         
         const custName = so.customer ? so.customer.customer_name : '-';
         const projName = so.project_name || '';

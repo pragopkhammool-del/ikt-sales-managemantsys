@@ -850,8 +850,8 @@
         const matchesStatus = statusVal === 'ALL' || i.status === statusVal;
         
         const salesRepId = i.sales_person_id || i.sales_person || '';
-        const salesRepName = userMap.get(salesRepId) || salesRepId; // Try to map ID to name, else use the value itself
-        const matchesSalesRep = salesRepVal === 'ALL' || salesRepName.toLowerCase() === salesRepVal.toLowerCase();
+        const salesRepName = (userMap.get(salesRepId) || salesRepId || '').trim();
+        const matchesSalesRep = salesRepVal === 'ALL' || salesRepName.toLowerCase() === salesRepVal.toLowerCase().trim();
 
         return matchesSearch && matchesCustomer && matchesStatus && matchesSalesRep;
       });

@@ -151,8 +151,8 @@ function initOpportunitiesEvents() {
       // 2. Sales Rep Filter
       if (selectedSalesRep !== 'ALL') {
         const salesRepId = o.sales_person_id || '';
-        const salesRepName = userMap.get(salesRepId) || salesRepId; // Fallback to ID if name not found
-        if (salesRepName !== selectedSalesRep) {
+        const salesRepName = (userMap.get(salesRepId) || salesRepId || '').trim();
+        if (salesRepName.toLowerCase() !== selectedSalesRep.toLowerCase().trim()) {
           return false;
         }
       }

@@ -416,10 +416,10 @@ function QuoteList({
       (statusFilter === "Approved" && q.status === "Invoiced");
     
     const salesRepId = q.sales_person || "";
-    const salesRepName = userMap.get(salesRepId) || salesRepId;
+    const salesRepName = (userMap.get(salesRepId) || salesRepId || "").trim();
     const matchesSalesRep =
       salesRepFilter === "ALL" ||
-      salesRepName.toLowerCase() === salesRepFilter.toLowerCase();
+      salesRepName.toLowerCase() === salesRepFilter.toLowerCase().trim();
     
     return matchesSearch && matchesStatus && matchesSalesRep;
   });
