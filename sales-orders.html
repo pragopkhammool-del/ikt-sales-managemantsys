@@ -191,9 +191,6 @@
                   <span class="input-group-text bg-light text-muted"><i class="fa fa-user-tie"></i></span>
                   <select class="form-select" id="so-filter-salesrep">
                     <option value="ALL">-- All Sales Reps --</option>
-                    <option value="Ekachai Wongdee (S01)">Ekachai Wongdee (S01)</option>
-                    <option value="Suchada Lertwiriya (S02)">Suchada Lertwiriya (S02)</option>
-                    <option value="Thanaphol Khamdee (S03)">Thanaphol Khamdee (S03)</option>
                   </select>
                 </div>
               </div>
@@ -533,13 +530,19 @@
   <script>
     let salesOrdersCached = [];
     let customersCached = [];
+    let userMap = new Map(); // Added userMap
     let activePrintSOId = null;
     let activePrintTemplate = 'delivery'; 
     let editItemIndexCounter = 0;
 
     document.addEventListener('DOMContentLoaded', async () => {
+      // Initialize UserMap for filtering
+      const users = await SupabaseDB.getUsers();
+      userMap = new Map(users.map(u => [u.id, u.fullname]));
+      
       await loadSalesOrders();
       await loadCustomersList();
+      await loadSalespersonsToFilterDropdown('so-filter-salesrep', 'ALL');
 
       document.getElementById('so-search-input').addEventListener('input', renderSalesOrders);
       document.getElementById('so-filter-status').addEventListener('change', renderSalesOrders);
@@ -595,7 +598,11 @@
       const filtered = salesOrdersCached.filter(so => {
         const localStatus = so.status || 'Pending';
         const matchesStatus = statusVal === 'ALL' || localStatus === statusVal;
-        const matchesSalesRep = salesRepVal === 'ALL' || (so.sales_person || '').toLowerCase() === salesRepVal.toLowerCase();
+        
+        const salesRepId = so.sales_person_id || so.sales_person || '';
+        const salesRepName = userMap.get(salesRepId) || salesRepId; // Try to map ID to name, else use the value itself (which might be a name)
+        const matchesSalesRep = salesRepVal === 'ALL' || salesRepName.toLowerCase() === salesRepVal.toLowerCase();
+        
         const custName = so.customer ? so.customer.customer_name : '-';
         const projName = so.project_name || '';
         const jobNo = so.job_no || '';

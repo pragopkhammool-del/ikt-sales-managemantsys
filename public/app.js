@@ -615,6 +615,28 @@ function highlightActiveMenu() {
   }
 }
 
+async function loadSalespersonsToFilterDropdown(dropdownId, defaultValue = 'ALL') {
+  try {
+    const users = await SupabaseDB.getUsers();
+    const select = document.getElementById(dropdownId);
+    if (!select) return;
+
+    // Preserve the placeholder if needed or set to default
+    const currentPlaceholder = select.querySelector('option[value="ALL"], option[value=""]')?.innerText || '-- All Sales Reps --';
+    select.innerHTML = `<option value="${defaultValue}">${currentPlaceholder}</option>`;
+    
+    // Add real users from users DB
+    users.filter(u => u.fullname && !u.fullname.toUpperCase().includes("ART KIT")).forEach(u => {
+      const opt = document.createElement('option');
+      opt.value = u.fullname;
+      opt.innerText = u.fullname;
+      select.appendChild(opt);
+    });
+  } catch (err) {
+    console.error("Dropdown filter injection failed", err);
+  }
+}
+
 // Dark Mode Actions
 function initDarkMode() {
   const toggler = document.getElementById('darkModeToggler');

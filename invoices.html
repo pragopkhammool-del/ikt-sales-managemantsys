@@ -139,9 +139,6 @@
                   <span class="input-group-text bg-light text-muted"><i class="fa fa-user-tie"></i></span>
                   <select class="form-select" id="inv-filter-salesrep">
                     <option value="ALL">-- All Sales Reps --</option>
-                    <option value="Ekachai Wongdee (S01)">Ekachai Wongdee (S01)</option>
-                    <option value="Suchada Lertwiriya (S02)">Suchada Lertwiriya (S02)</option>
-                    <option value="Thanaphol Khamdee (S03)">Thanaphol Khamdee (S03)</option>
                   </select>
                 </div>
               </div>
@@ -764,12 +761,18 @@
   <script>
     let rawCustomers = [];
     let currentInvoices = [];
+    let userMap = new Map();
     let itemIndexCounter = 0;
 
     document.addEventListener('DOMContentLoaded', async () => {
       toggleGlobalLoader(true);
       try {
+        // Initialize UserMap for filtering
+        const users = await SupabaseDB.getUsers();
+        userMap = new Map(users.map(u => [u.id, u.fullname]));
+
         await loadInvoiceMasterData();
+        await loadSalespersonsToFilterDropdown('inv-filter-salesrep', 'ALL');
         await renderInvoicesList();
       } catch (err) {
         console.error("Load invoices view error", err);
@@ -845,7 +848,10 @@
 
         const matchesCustomer = !customerVal || i.customer_id === customerVal;
         const matchesStatus = statusVal === 'ALL' || i.status === statusVal;
-        const matchesSalesRep = salesRepVal === 'ALL' || (i.sales_person || '').toLowerCase() === salesRepVal.toLowerCase();
+        
+        const salesRepId = i.sales_person_id || i.sales_person || '';
+        const salesRepName = userMap.get(salesRepId) || salesRepId; // Try to map ID to name, else use the value itself
+        const matchesSalesRep = salesRepVal === 'ALL' || salesRepName.toLowerCase() === salesRepVal.toLowerCase();
 
         return matchesSearch && matchesCustomer && matchesStatus && matchesSalesRep;
       });

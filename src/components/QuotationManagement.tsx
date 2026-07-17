@@ -402,6 +402,7 @@ function QuoteList({
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [salesRepFilter, setSalesRepFilter] = useState("ALL");
 
+  const userMap = new Map(users.map((u: any) => [u.id, u.fullname]));
   const filtered = quotations.filter((q) => {
     const custObj = customers?.find((c: any) => c.id === q.customer_id) || q.customer;
     const custName = custObj?.customer_name || q.customer_name || "";
@@ -413,9 +414,13 @@ function QuoteList({
       statusFilter === "ALL" ||
       q.status === statusFilter ||
       (statusFilter === "Approved" && q.status === "Invoiced");
+    
+    const salesRepId = q.sales_person || "";
+    const salesRepName = userMap.get(salesRepId) || salesRepId;
     const matchesSalesRep =
       salesRepFilter === "ALL" ||
-      (q.sales_person || "").toLowerCase() === salesRepFilter.toLowerCase();
+      salesRepName.toLowerCase() === salesRepFilter.toLowerCase();
+    
     return matchesSearch && matchesStatus && matchesSalesRep;
   });
 

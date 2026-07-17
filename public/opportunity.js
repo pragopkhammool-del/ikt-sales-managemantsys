@@ -7,10 +7,13 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 let allOpportunitiesCached = [];
+let userMap = new Map();
 
 async function loadOpportunitiesTable() {
   toggleGlobalLoader(true);
   try {
+    const users = await SupabaseDB.getUsers();
+    userMap = new Map(users.map(u => [u.id, u.fullname]));
     allOpportunitiesCached = await SupabaseDB.getOpportunities();
     renderOpportunityRows(allOpportunitiesCached);
   } catch (err) {
@@ -148,7 +151,8 @@ function initOpportunitiesEvents() {
       // 2. Sales Rep Filter
       if (selectedSalesRep !== 'ALL') {
         const salesRepId = o.sales_person_id || '';
-        if (salesRepId !== selectedSalesRep) {
+        const salesRepName = userMap.get(salesRepId) || salesRepId; // Fallback to ID if name not found
+        if (salesRepName !== selectedSalesRep) {
           return false;
         }
       }
