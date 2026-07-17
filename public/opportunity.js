@@ -305,7 +305,7 @@ async function loadSalespersonsToDropdown() {
     select.innerHTML = '<option value="" disabled selected>-- Please select Sales Owner --</option>';
     
     // Add real users from users DB
-    users.forEach(u => {
+    users.filter(u => u.fullname && !u.fullname.toUpperCase().includes("ART KIT")).forEach(u => {
       const opt = document.createElement('option');
       opt.value = u.id;
       opt.innerText = `${u.fullname} (${u.role})`;
@@ -319,7 +319,7 @@ async function loadSalespersonsToDropdown() {
       { id: "Thanapol Khamdee (S03)", fullname: "Thanapol Khamdee", role: "Sales Rep (S03)" },
       { id: "Thanaphol Khamdee (S03)", fullname: "Thanaphol Khamdee", role: "Sales Rep (S03)" }
     ];
-    legacyReps.forEach(rep => {
+    legacyReps.filter(r => !r.fullname.toUpperCase().includes("ART KIT")).forEach(rep => {
       if (!users.some(u => u.id === rep.id || u.fullname === rep.fullname)) {
         const opt = document.createElement('option');
         opt.value = rep.id;
@@ -329,6 +329,26 @@ async function loadSalespersonsToDropdown() {
     });
   } catch (err) {
     console.error("Dropdown salesperson injection failed", err);
+  }
+}
+
+async function loadSalespersonsToFilterDropdown() {
+  try {
+    const users = await SupabaseDB.getUsers();
+    const select = document.getElementById('opportunity-filter-salesrep');
+    if (!select) return;
+
+    select.innerHTML = '<option value="ALL">All Sales Representatives</option>';
+    
+    // Add real users from users DB
+    users.filter(u => u.fullname && !u.fullname.toUpperCase().includes("ART KIT")).forEach(u => {
+      const opt = document.createElement('option');
+      opt.value = u.fullname; // The current filter uses fullname as value
+      opt.innerText = u.fullname;
+      select.appendChild(opt);
+    });
+  } catch (err) {
+    console.error("Dropdown filter injection failed", err);
   }
 }
 

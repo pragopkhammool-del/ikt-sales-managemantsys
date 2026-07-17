@@ -140,9 +140,14 @@ export default function OpportunityView({
   const [newActivityType, setNewActivityType] = useState<'Phone Call' | 'Meeting' | 'Email' | 'Site Visit' | 'Other'>('Phone Call');
   const [newActivitySubject, setNewActivitySubject] = useState('');
   const [newActivityDesc, setNewActivityDesc] = useState('');
+  const [dbUsers, setDbUsers] = useState<any[]>([]);
 
   // Fetch opportunity components on focus
   useEffect(() => {
+    window.SupabaseDB.getUsers().then(users => {
+      console.log('DEBUG: dbUsers:', users);
+      setDbUsers(users || []);
+    });
     if (viewingOpp) {
       setOppTab('details');
       setLoadingRelated(true);
@@ -165,29 +170,13 @@ export default function OpportunityView({
   }, [viewingOpp]);
 
   const allSalesPersons = useMemo(() => {
-    const base = [...SAMPLE_SALES_PERSONS];
-    try {
-      const cached = localStorage.getItem('crm_sim_users');
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed)) {
-          parsed.forEach((user: any) => {
-            if (!base.some(b => b.id === user.id)) {
-              base.push({
-                id: user.id,
-                name: user.name || user.fullname || user.username,
-                role: user.role,
-                email: user.email || ''
-              });
-            }
-          });
-        }
-      }
-    } catch (e) {
-      console.error(e);
-    }
-    return base;
-  }, []);
+    return dbUsers.filter(u => u.fullname && !u.fullname.toUpperCase().includes("ART KIT")).map(u => ({
+      id: u.id,
+      name: u.fullname,
+      role: u.role,
+      email: u.email
+    }));
+  }, [dbUsers]);
 
   const activeSalesPersonMap = useMemo(() => {
     return new Map(allSalesPersons.map(s => [s.id, s.name]));
@@ -220,7 +209,7 @@ export default function OpportunityView({
 
     // Sales Filter
     if (salesFilter !== 'All') {
-      list = list.filter(o => o.sales_person_id === salesFilter);
+      list = list.filter(o => activeSalesPersonMap.get(o.sales_person_id) === salesFilter);
     }
 
     // Sort
@@ -535,7 +524,7 @@ export default function OpportunityView({
             >
               <option value="All">All Sales Representatives</option>
               {allSalesPersons.map(s => (
-                <option key={s.id} value={s.id}>{s.name}</option>
+                <option key={s.id} value={s.name}>{s.name}</option>
               ))}
             </select>
           </div>

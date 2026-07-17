@@ -86,9 +86,6 @@
                   <span class="input-group-text bg-light text-muted"><i class="fa fa-user-tie"></i></span>
                   <select class="form-select" id="opportunity-filter-salesrep">
                     <option value="ALL">All Sales Representatives</option>
-                    <option value="Ekachai Wongdee (S01)">Ekachai Wongdee (S01)</option>
-                    <option value="Suchada Lertwiriya (S02)">Suchada Lertwiriya (S02)</option>
-                    <option value="Thanaphol Khamdee (S03)">Thanaphol Khamdee (S03)</option>
                   </select>
                 </div>
               </div>
@@ -284,5 +281,10 @@
   <script src="/supabase.js"></script>
   <script src="/app.js"></script>
   <script src="/opportunity.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        loadSalespersonsToFilterDropdown();
+    });
+  </script>
 </body>
 </html>
