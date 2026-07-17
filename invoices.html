@@ -850,8 +850,9 @@
         const matchesStatus = statusVal === 'ALL' || i.status === statusVal;
         
         const salesRepId = i.sales_person_id || i.sales_person || '';
-        const salesRepName = (userMap.get(salesRepId) || salesRepId || '').trim();
-        const matchesSalesRep = salesRepVal === 'ALL' || salesRepName.toLowerCase() === salesRepVal.toLowerCase().trim();
+        const salesRepName = (userMap.get(salesRepId) || salesRepId || '').replace(/\s+/g, ' ').trim();
+        const filterVal = salesRepVal.replace(/\s+/g, ' ').trim();
+        const matchesSalesRep = salesRepVal === 'ALL' || salesRepName.toLowerCase() === filterVal.toLowerCase();
 
         return matchesSearch && matchesCustomer && matchesStatus && matchesSalesRep;
       });

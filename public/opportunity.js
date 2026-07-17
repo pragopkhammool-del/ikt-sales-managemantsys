@@ -151,8 +151,9 @@ function initOpportunitiesEvents() {
       // 2. Sales Rep Filter
       if (selectedSalesRep !== 'ALL') {
         const salesRepId = o.sales_person_id || '';
-        const salesRepName = (userMap.get(salesRepId) || salesRepId || '').trim();
-        if (salesRepName.toLowerCase() !== selectedSalesRep.toLowerCase().trim()) {
+        const salesRepName = (userMap.get(salesRepId) || salesRepId || '').replace(/\s+/g, ' ').trim();
+        const filterVal = selectedSalesRep.replace(/\s+/g, ' ').trim();
+        if (salesRepName.toLowerCase() !== filterVal.toLowerCase()) {
           return false;
         }
       }
